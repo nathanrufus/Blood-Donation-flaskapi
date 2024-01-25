@@ -1,55 +1,66 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from datetime import datetime
-
-db=SQLAlchemy()
-
-app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///donation.db'
-
-db.init_app(app)
-migrate = Migrate(app, db)
+from . import create_app,db
+from flask_restful import Api, Resource
+from flask import  jsonify, make_response, request
+from server.models.models import Reception ,Donor ,Bloodbank,Blood
+import logging
+from sqlalchemy.exc import SQLAlchemyError
 
 
-class Reception(db.Model):
-    
-    id=db.Column(db.Integer(), primary_key=True)
-    name=db.Column(db.String(100))
-    email=db.Column(db.String(100))
-    password=db.Column(db.String(100))
 
-class Donor(db.Model):
-    
-    D_id=db.Column(db.Integer(), primary_key=True)
-    Dname=db.Column(db.String(100))
-    Demail=db.Column(db.String(100))
-    sex=db.Column(db.String(100))    
-    address=db.Column(db.String(100)) 
-    age=db.Column(db.Integer())
-    weight=db.Column(db.Integer())
-    donor_Date= db.Column(db.DateTime,default=datetime.utcnow)   
+app=create_app()
+api = Api(app)
+
+# from datetime import datetime
+# # from . import db
+# from flask import Flask
+# from flask_sqlalchemy import SQLAlchemy
+# from flask_migrate import Migrate
 
 
-class Blood(db.Model):
-    
-    b_code=db.Column(db.Integer(), primary_key=True)
-    D_id=db.Column(db.Integer())
-    packets=db.Column(db.Integer())
-    B_group=db.Column(db.String(100))
+# db=SQLAlchemy()
 
-class Bloodbank(db.Model):
-    
-    b_group=db.Column(db.String(100),primary_key=True)
-    total_packets=db.Column(db.Integer())
+# app=Flask(__name__)
+# app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///donation.db'
+
+# db.init_app(app)
+# migrate=Migrate(app,db)
+
+logging.basicConfig(level=logging.INFO)
+
+def handle_error(e, status_code):
+    logging.error(str(e))
+    return jsonify({'error' : str(e)}), status_code
 
 
 @app.route('/')
 def home():
     return 'welcome home'
 
+class Reception_details(Resource):
+    def get(self):
+        try:
+            receptions= Reception.query.all()
+            response=[reception.to_dict() for reception in receptions]
+            return make_response(jsonify(response),200)
+        except SQLAlchemyError as e:
+            return handle_error(e,500)
 
+class Reception_byId(Resource):
+    def get(self,id):
+        reception= Reception.query.filter(id==id).first()
+        return make_response(jsonify(reception.to_dict()),200)
 
+    def delete(self,id):
+        try:
+            reception= Reception.query.filter(id==id).first()
+            db.session.delete(reception)
+            db.commit()
+        except SQLAlchemyError as e:
+            return handle_error(e,500)
+     
+
+api.add_resource(Reception_details,'/receptions')
+api.add_resource(Reception_byId,'/receptions/<int:id>')
 
 
 if __name__=='__main__':
