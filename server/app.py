@@ -1,14 +1,13 @@
-from . import create_app,db
-from flask_restful import Api, Resource
-from flask import  jsonify, make_response, request
+from . import create_app
 from server.models.models import Reception ,Donor ,Bloodbank,Blood
-import logging
 from sqlalchemy.exc import SQLAlchemyError
-
+from server.controllers.Donor_controller import get,get_id
+from server.controllers.Blood_controller import get_blood,get_bloodId
+from server.controllers.Bloodbank_contrller import get_bloodbank,get_bloodbankId
+from server.controllers.Reception_controller import get_recept,get_receptId
 
 
 app=create_app()
-api = Api(app)
 
 # from datetime import datetime
 # # from . import db
@@ -25,42 +24,42 @@ api = Api(app)
 # db.init_app(app)
 # migrate=Migrate(app,db)
 
-logging.basicConfig(level=logging.INFO)
 
-def handle_error(e, status_code):
-    logging.error(str(e))
-    return jsonify({'error' : str(e)}), status_code
+
 
 
 @app.route('/')
 def home():
     return 'welcome home'
+@app.route('/receptions',methods=['GET'])
+def get_reception():
+    return get_recept()
+@app.route('/receptions/<int:id>',methods=['GET'])
+def get_reception_byId(id):
+    return get_receptId(id)
+@app.route('/donor',methods=['GET'])
+def get_donor():
+    return get()
+@app.route('/donor/<int:D_id>',methods=['GET'])
+def get_byId(D_id):
+    return get_id(D_id)
+@app.route('/blood',methods=['GET'])
+def list_blood():
+    return get_blood()
+@app.route('/blood/<int:D_id>',methods=['GET'])
+def list_byId(D_id):
+    return get_bloodId(D_id)
+@app.route('/bloodbank',methods=['GET'])
+def list_bloodbank():
+    return get_bloodbank()
+# @app.route('/bloodbank/<int:b_group>',methods=['GET'])
+# def list_bloodbankId(b_group):
+#     return get_bloodbankId(b_group)
 
-class Reception_details(Resource):
-    def get(self):
-        try:
-            receptions= Reception.query.all()
-            response=[reception.to_dict() for reception in receptions]
-            return make_response(jsonify(response),200)
-        except SQLAlchemyError as e:
-            return handle_error(e,500)
 
-class Reception_byId(Resource):
-    def get(self,id):
-        reception= Reception.query.filter(id==id).first()
-        return make_response(jsonify(reception.to_dict()),200)
 
-    def delete(self,id):
-        try:
-            reception= Reception.query.filter(id==id).first()
-            db.session.delete(reception)
-            db.commit()
-        except SQLAlchemyError as e:
-            return handle_error(e,500)
-     
 
-api.add_resource(Reception_details,'/receptions')
-api.add_resource(Reception_byId,'/receptions/<int:id>')
+
 
 
 if __name__=='__main__':
