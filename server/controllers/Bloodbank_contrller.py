@@ -15,9 +15,9 @@ def get_bloodbank():
         return jsonify([n.serialize() for n in Bloodbank.query.all()]), 200
     except SQLAlchemyError as e:
         return handle_error(e, 500)
-def get_bloodbankId(b_group):
-    try:    
-        donor = Bloodbank.query.filter(b_group==b_group).first()
-        return (jsonify(donor.serialize()),200) 
-    except SQLAlchemyError as e:
-        return handle_error(e, 500)    
+# def get_bloodbankId(b_group):
+#     try:    
+#         donor = Bloodbank.query.filter(b_group==b_group).first()
+#         return (jsonify(donor.serialize()),200) 
+#     except SQLAlchemyError as e:
+#         return handle_error(e, 500)    

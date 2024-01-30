@@ -1,9 +1,9 @@
 from . import create_app
 from server.models.models import Reception ,Donor ,Bloodbank,Blood
 from sqlalchemy.exc import SQLAlchemyError
-from server.controllers.Donor_controller import get,get_id
+from server.controllers.Donor_controller import get,get_id,delete_donor,create_donor
 from server.controllers.Blood_controller import get_blood,get_bloodId
-from server.controllers.Bloodbank_contrller import get_bloodbank,get_bloodbankId
+from server.controllers.Bloodbank_contrller import get_bloodbank
 from server.controllers.Reception_controller import get_recept,get_receptId
 
 
@@ -37,9 +37,15 @@ def get_reception():
 @app.route('/receptions/<int:id>',methods=['GET'])
 def get_reception_byId(id):
     return get_receptId(id)
+@app.route('/donor',methods=['POST'])
+def form_donor():
+    return create_donor()
 @app.route('/donor',methods=['GET'])
 def get_donor():
     return get()
+@app.route('/donor/<int:D_id>',methods=['DELETE'])
+def remove_donor(D_id):
+    return delete_donor(D_id)
 @app.route('/donor/<int:D_id>',methods=['GET'])
 def get_byId(D_id):
     return get_id(D_id)
